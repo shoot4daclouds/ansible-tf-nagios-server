@@ -52,7 +52,6 @@
   shell: "{{ item }}"
   args:
     chdir: "{{ nagios_dir.files | map(attribute='path') | list | join(' ') }}"
-    creates: "{{ nagios_dir.files | map(attribute='path') | list | join(' ') }}/base/nagios"
   with_items:
     - make all
     - make install
@@ -64,7 +63,6 @@
   shell: "{{ item }}"
   args:
     chdir: "{{ nagios_dir.files | map(attribute='path') | list | join(' ') }}"
-    creates: /etc/httpd/conf.d/nagios.conf
   with_items:
     - make install-webconf
     - make install-exfoliation
@@ -73,7 +71,7 @@
 
 - name: "Install pip"
   yum:
-    name: pip
+    name: python3-pip
     state: present
 
 - name: "Install passlib"
@@ -91,4 +89,22 @@
     name: httpd
     state: started
     enabled: yes
-    
+
+- name: "Install firewalld"
+  yum:
+    name: firewalld
+    state: present
+
+- name: "Ensure firewalld is started and enabled"
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+
+- name: "Open firewalld ports"
+  firewalld:
+    port: "{{ item }}"
+    permanent: yes
+    state: enabled
+  with_items: "{{ nagios_server_ports }}"
+  notify: Restart firewalld

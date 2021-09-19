@@ -1,8 +1,36 @@
 --- 
 
+- hosts: localhost
+  name: "Provision nagios server with terraform"
+  vars:
+    terraform_dir: ../terraform
+ 
+  tasks:
+    - name: "Create AWS instance with Terraform"
+      terraform:
+        project_path: "{{ terraform_dir }}"
+        state: present
+      register: outputs
+ 
+    - name: "Add terraform public ip address to hostgroup"
+      add_host: 
+        name: "{{ item }}" 
+        groups: nagios-server
+      with_items: "{{ outputs.outputs.nagios_server_public_ip.value }}"
+  tags: always
+
 - name: "Install nagios server"
   hosts: nagios-server 
   become: true
+  user: ec2-user
+  gather_facts: false
+
+  pre_tasks:
+    - name: "Wait for server resource to become available"
+      wait_for_connection:
+        delay: 60
+        timeout: 600
+
   roles:
     - role: nagios-server
       tags: [ nagios-server ]

@@ -1,0 +1,94 @@
+--- 
+
+- name: "Update the os"
+  yum:
+    name: "*"
+    state: latest
+  register: update
+
+- name: "Reboot if needed"
+  reboot:
+  when: update.changed
+
+- name: "Install nagios dependencies"
+  yum:
+    name: "{{ nagios_dependencies }}"
+    state: present 
+
+- name: "Ensure {{ group }} group exists"
+  group:
+    name: "{{ group }}"
+    state: present 
+  
+- name: "Create {{ user }} user"
+  user:
+    name: "{{ user }}"
+    state: present 
+    groups: "{{ group }},apache"
+
+- name: "Download nagios-server tar"
+  unarchive:
+    src: "{{ nagios_tar }}"
+    dest: /var/tmp/
+    remote_src: yes
+  register: tar 
+
+- name: "Set fact for nagios directory"  # Need to find better method getting directory path; possibly from nagios_tar var
+  find:
+    paths: /var/tmp 
+    recurse: yes
+    file_type: directory
+    patterns: "nagios*"
+  register: nagios_dir
+
+- name: "Run configure"
+  shell: "./configure --with-nagios-group={{ user }} --with-command-group={{ group }}"
+  args:
+    chdir: "{{ nagios_dir.files | map(attribute='path') | list | join(' ') }}"
+    creates: "{{ nagios_dir.files | map(attribute='path') | list | join(' ') }}/Makefile"
+  register: configure
+
+- name: "Run make install"
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ nagios_dir.files | map(attribute='path') | list | join(' ') }}"
+    creates: "{{ nagios_dir.files | map(attribute='path') | list | join(' ') }}/base/nagios"
+  with_items:
+    - make all
+    - make install
+    - make install-init
+    - make install-config
+    - make install-commandmode
+  
+- name: "Install web interface"
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ nagios_dir.files | map(attribute='path') | list | join(' ') }}"
+    creates: /etc/httpd/conf.d/nagios.conf
+  with_items:
+    - make install-webconf
+    - make install-exfoliation
+  notify:
+    - Restart httpd
+
+- name: "Install pip"
+  yum:
+    name: pip
+    state: present
+
+- name: "Install passlib"
+  pip: 
+    name: passlib 
+
+- name: "Create nagios admin user"
+  htpasswd:
+    path: /usr/local/nagios/etc/htpasswd.users
+    name: "{{ nagios_admin_user }}"
+    password: "{{ nagios_admin_pass }}"
+
+- name: "Ensure httpd is started and enabled"
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+    

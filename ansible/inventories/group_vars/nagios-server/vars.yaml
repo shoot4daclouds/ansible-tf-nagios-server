@@ -1,0 +1,4 @@
+--- 
+
+nagios_tar: https://assets.nagios.com/downloads/nagioscore/releases/nagios-4.4.3.tar.gz
+nagios_admin_user: nagiosadmin 

@@ -1,0 +1,8 @@
+--- 
+
+- name: "Install nagios server"
+  hosts: nagios-server 
+  become: true
+  roles:
+    - role: nagios-server
+      tags: [ nagios-server ]

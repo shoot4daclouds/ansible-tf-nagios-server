@@ -59,3 +59,4 @@ Default output format [None]:
 # cd ../ansible
 # ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook nagios-server.yaml -i inventories/hosts --private-key=<path to private key> --ask-vault
 ```
+9. Nagios UI accessible via: http://<ip_address>/nagios

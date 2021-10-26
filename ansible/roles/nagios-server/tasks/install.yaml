@@ -1,14 +1,14 @@
 --- 
 
-- name: "Update the os"
-  yum:
-    name: "*"
-    state: latest
-  register: update
+# - name: "Update the os"
+#   yum:
+#     name: "*"
+#     state: latest
+#   register: update
 
-- name: "Reboot if needed"
-  reboot:
-  when: update.changed
+# - name: "Reboot if needed"
+#   reboot:
+#   when: update.changed
 
 - name: "Install nagios dependencies"
   yum:
@@ -87,6 +87,12 @@
 - name: "Ensure httpd is started and enabled"
   service:
     name: httpd
+    state: started
+    enabled: yes
+
+- name: "Ensure nagios is started and enabled"
+  service:
+    name: nagios
     state: started
     enabled: yes
 

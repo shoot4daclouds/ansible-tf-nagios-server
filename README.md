@@ -10,6 +10,7 @@ This project creates basic nagios server using Ansible. The Ansible playbook cal
 1. Linux box with the following installed (tested on CentOS 7)
    - ansible
    - [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html)
+   - [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli)
 2. A key pair created in AWS and a downloaded copy available on the linux box
 
 # AWS CLI Setup

@@ -27,9 +27,8 @@
 
   pre_tasks:
     - name: "Wait for server resource to become available"
-      wait_for_connection:
-        delay: 60
-        timeout: 600
+      pause:
+        minutes: 1
 
   roles:
     - role: nagios-server
